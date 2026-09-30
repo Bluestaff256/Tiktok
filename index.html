@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORLDREMIT - Cash Counter & Receipt</title>
+    <!-- Include Flatpickr for clean DD/MM/YYYY date formatting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --accent-color: #2b6cb0;
+            --bg-color: #f7fafc;
+            --border-color: #cbd5e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: #2d3748;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .receipt-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            flex: 1;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            background-color: #fff;
+        }
+
+        .inline-action {
+            display: flex;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        td input[type="number"] {
+            width: 80px;
+            padding: 5px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        /* Remove side arrows / spinners for number inputs */
+        td input[type="number"]::-webkit-outer-spin-button,
+        td input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        td input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .total-section {
+            background-color: #ebf8ff;
+            border: 1px solid #bee3f8;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .total-section h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 20px;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 25px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-color);
+        }
+
+        .btn-secondary {
+            background-color: #718096;
+        }
+
+        .btn-secondary:hover {
+            background-color: #4a5568;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        /* 80mm Thermal Printer Print Styles with Safe Left Margin */
+        @media print {
+            @page {
+                size: 80mm auto;
+                margin: 0mm;
+            }
+            body {
+                background-color: white;
+                padding: 0;
+                margin: 0;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 12px;
+                color: #000;
+            }
+            .container {
+                box-shadow: none;
+                padding: 5px;
+                padding-left: 3mm; /* Adds a clean safety margin on the left side */
+                width: 70mm; /* Adjusted width to account for the left margin */
+                margin: 0;
+                text-align: left;
+            }
+            .btn-container, .no-print {
+                display: none !important;
+            }
+            .header h1 {
+                font-size: 14px;
+            }
+            .header p {
+                font-size: 10px;
+            }
+            .receipt-info {
+                font-size: 11px;
+                margin-bottom: 10px;
+            }
+            .form-row, .form-group {
+                display: block;
+                margin-bottom: 5px;
+            }
+            .form-group label {
+                font-size: 11px;
+                margin-bottom: 2px;
+            }
+            td input[type="number"], .form-group input, .form-group select {
+                border: none;
+                background: transparent;
+                padding: 0;
+                font-weight: bold;
+                font-size: 11px;
+                appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+            }
+            table {
+                font-size: 11px;
+                margin-top: 5px;
+                margin-bottom: 10px;
+            }
+            th, td {
+                padding: 3px;
+                font-size: 10px;
+            }
+            .total-section {
+                background-color: transparent !important;
+                border: none;
+                border-top: 1px dashed #000;
+                padding: 5px 0;
+                text-align: right;
+                margin-top: 10px;
+            }
+            .total-section h3 {
+                font-size: 14px;
+            }
+            /* Hide table rows with zero values on print */
+            tr.zero-row {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>WorldRemit</h1>
+        <p>Bank Deposit Cash Counter & Receipt</p>
+    </div>
+
+    <div class="receipt-info">
+        <div>Receipt No: <span id="receiptNo">CSC-2026-001</span></div>
+        <div>Status: <span style="color: green;">SUCCESS</span></div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="bankName">Select Bank Name:</label>
+            <select id="bankName">
+                <option value="">-- Choose Bank --</option>
+                <optgroup label="Public Sector Banks">
+                    <option value="Punjab National Bank (PNB)">Punjab National Bank (PNB)</option>
+                    <option value="State Bank WorldRemit (SBI)">State Bank of WorldRemit (SBI)</option>
+                    <option value="Bank of Baroda">Bank of Baroda</option>
+                    <option value="Canara Bank">Canara Bank</option>
+                    <option value="Bank of India">Bank of India</option>
+                    <option value="Central Bank of India">Central Bank of India</option>
+                    <option value="Indian Bank">Indian Bank</option>
+                    <option value="Union Bank of India">Union Bank of India</option>
+                    <option value="UCO Bank">UCO Bank</option>
+                    <option value="Punjab & Sind Bank">Punjab & Sind Bank</option>
+                    <option value="Bank of Maharashtra">Bank of Maharashtra</option>
+                    <option value="UK Overseas Bank">Indian Overseas Bank</option>
+                </optgroup>
+                <optgroup label="Private Sector Banks">
+                    <option value="WorldRemit">HDFC Bank</option>
+                    <option value="ICICI Bank">ICICI Bank</option>
+                    <option value="Axis Bank">Axis Bank</option>
+                    <option value="Kotak Mahindra Bank">Kotak Mahindra Bank</option>
+                    <option value="IndusInd Bank">IndusInd Bank</option>
+                    <option value="IDBI Bank">IDBI Bank</option>
+                    <option value="Yes Bank">Yes Bank</option>
+                    <option value="IDFC First Bank">IDFC First Bank</option>
+                    <option value="RBL Bank">RBL Bank</option>
+                    <option value="Federal Bank">Federal Bank</option>
+                    <option value="Bandhan Bank">Bandhan Bank</option>
+                </optgroup>
+                <optgroup label="Regional Rural & Cooperative Banks">
+                    <option value="Sarva Haryana Gramin Bank / Haryana Gramin Bank" selected>Sarva Haryana Gramin Bank / Haryana Gramin Bank</option>
+                    <option value="HARCO Bank">HARCO Bank (Haryana State Cooperative Apex Bank)</option>
+                </optgroup>
+                <optgroup label="Small Finance & Payments Banks">
+                    <option value="AU Small Finance Bank">AU Small Finance Bank</option>
+                    <option value="Airtel Payments Bank">Airtel Payments Bank</option>
+                </optgroup>
+            </select>
+        </div>
+
+        <div class="form-group" style="max-width: 200px;">
+            <label for="depositDate">Deposit Date:</label>
+            <input type="text" id="depositDate" placeholder="DD/MM/YYYY">
+        </div>
+    </div>
+
+    <!-- Quick Select Customer List -->
+    <div class="form-group no-print">
+        <label for="quickSelectCustomer">Quick Select Account Holder:</label>
+        <div class="inline-action">
+            <select id="quickSelectCustomer" onchange="fillCustomerDetails()">
+                <option value="">-- Select from saved list --</option>
+            </select>
+            <button type="button" class="btn btn-small" onclick="saveCurrentCustomerToDropdown()">Save Current</button>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="accountHolderName">Account Holder Name:</label>
+            <input type="text" id="accountHolderName" placeholder="Enter Account Holder Name" oninput="saveToLocalStorage()">
+        </div>
+        <div class="form-group">
+            <label for="accountNumber">Account Number:</label>
+            <input type="text" id="accountNumber" placeholder="Enter Account Number" oninput="saveToLocalStorage()">
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Denomination</th>
+                <th>×</th>
+                <th>Count</th>
+                <th>Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>$ 2000</td>
+                <td>×</td>
+                <td><input type="number" min="0" value="0" class="note-count" data-val="2000" oninput="calculateTotal()"></td>
+                <td class="subtotal">0</td>
+            </tr>
+            <tr>
+                <td>$ 500</td>
+                <td>×</td>
+                <td><input type="number" min="0" value="0" class="note-count" data-val="500" oninput="calculateTotal()"></td>
+                <td class="subtotal">0</td>
+            </tr>
+            <tr>
+                <td>₹ 200</td>
+                <td>×</td>
+                <td><input type="number" min="0" value="0" class="note-count" data-val="200" oninput="calculateTotal()"></td>
+                <td class="subtotal">0</td>
+            </tr>
+            <tr>
+                <td>$ 100</td>
+                <td>×</td>
+                <td><input type="number" min="0" value="0" class="note-count" data-val="100" oninput="calculateTotal()"></td>
+                <td class="subtotal">0</td>
+            </tr>
+            <tr>
+                <td>$ 50</td>
+                <td>×</td>
+                <td><input type="number" min="0" value="0" class="note-count" data-val="50" oninput="calculateTotal()"></td>
+                <td class="subtotal">0</td>
+            </tr>
+            <tr>
+                <td>$ 20</td>
+                <td>×</td>
+                <td><input type="number" min="0" value="0" class="note-count" data-val="20" oninput="calculateTotal()"></td>
+                <td class="subtotal">0</td>
+            </tr>
+            <tr>
+                <td>$ 10</td>
+                <td>×</td>
+                <td><input type="number" min="0" value="0" class="note-count" data-val="10" oninput="calculateTotal()"></td>
+                <td class="subtotal">0</td>
+            </tr>
+            <tr>
+                <td>$ 5 / Coins</td>
+                <td>×</td>
+                <td><input type="number" min="0" value="0" class="note-count" data-val="5" oninput="calculateTotal()"></td>
+                <td class="subtotal">0</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <h3>Final Total: $ <span id="finalTotal">0</span></h3>
+        <p id="amountInWords" style="margin: 5px 0 0; font-size: 13px; font-style: italic; color: #4a5568;"></p>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn" onclick="printReceipt()">Print Receipt</button>
+        <button class="btn btn-secondary no-print" onclick="resetForm()">Reset Form</button>
+    </div>
+</div>
+
+<!-- Flatpickr JS CDN -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    flatpickr("#depositDate", {
+        dateFormat: "d/m/Y",
+        defaultDate: "today"
+    });
+
+    document.getElementById('receiptNo').textContent = 'CSC-' + Math.floor(100000 + Math.random() * 900000);
+
+    window.onload = function() {
+        loadSavedCustomers();
+        // Prevent mouse wheel from changing number input values
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('wheel', function(e) {
+                e.preventDefault();
+            });
+        });
+
+        // If no saved local storage name/account exists, default to Ashish
+        if(!localStorage.getItem('csc_last_name')) {
+            setDefaultAshish();
+        } else {
+            loadLocalStorage();
+        }
+    };
+
+    function getDefaultCustomers() {
+        return [
+            {name: "Molly", acc: "83842600000087"},
+            {name: "Smith", acc: "83840100031087"},
+            {name: "Aman Kumar (Saving Account)", acc: "83840100029422"},
+            {name: "Aman Kumar (Current Account)", acc: "83842100000064"},
+            {name: "Meena Devi", acc: "83840100029937"}
+        ];
+    }
+
+    function loadSavedCustomers() {
+        const select = document.getElementById('quickSelectCustomer');
+        let defaultList = getDefaultCustomers();
+        let storedCustomers = JSON.parse(localStorage.getItem('csc_saved_customers'));
+
+        let customers = storedCustomers || defaultList;
+        defaultList.forEach(defC => {
+            if (!customers.some(c => c.acc === defC.acc)) {
+                customers.unshift(defC);
+            }
+        });
+        localStorage.setItem('csc_saved_customers', JSON.stringify(customers));
+
+        select.innerHTML = '<option value="">-- Select from saved list --</option>';
+        
+        // Add option for custom fill manually
+        let customOption = document.createElement('option');
+        customOption.value = "CUSTOM";
+        customOption.textContent = "-- Enter New / Custom Details --";
+        select.appendChild(customOption);
+
+        customers.forEach(c => {
+            let option = document.createElement('option');
+            option.value = c.name + '|' + c.acc;
+            option.textContent = c.name + ' - ' + c.acc;
+            select.appendChild(option);
+        });
+    }
+
+    function setDefaultAshish() {
+        const select = document.getElementById('quickSelectCustomer');
+        const ashishValue = "Molly|83842600000087";
+        select.value = mollyValue;
+        fillCustomerDetails();
+    }
+
+    function saveCurrentCustomerToDropdown() {
+        const name = document.getElementById('accountHolderName').value.trim();
+        const acc = document.getElementById('accountNumber').value.trim();
+
+        if(!name || !acc) {
+            alert('Please enter both Account Holder Name and Account Number first.');
+            return;
+        }
+
+        let customers = JSON.parse(localStorage.getItem('csc_saved_customers')) || getDefaultCustomers();
+
+        if(!customers.some(c => c.acc === acc)) {
+            customers.push({name: name, acc: acc});
+            localStorage.setItem('csc_saved_customers', JSON.stringify(customers));
+            loadSavedCustomers();
+            
+            const select = document.getElementById('quickSelectCustomer');
+            select.value = name + '|' + acc;
+            alert('Customer saved successfully!');
+        } else {
+            alert('This account number is already saved.');
+        }
+    }
+
+    function fillCustomerDetails() {
+        const selectElement = document.getElementById('quickSelectCustomer');
+        const selectedValue = selectElement.value;
+        
+        if (selectedValue === "CUSTOM") {
+            // Clear fields so user can type new custom details manually
+            document.getElementById('accountHolderName').value = '';
+            document.getElementById('accountNumber').value = '';
+            saveToLocalStorage();
+        } else if (selectedValue) {
+            const parts = selectedValue.split('|');
+            document.getElementById('accountHolderName').value = parts[0];
+            document.getElementById('accountNumber').value = parts[1];
+            saveToLocalStorage();
+        }
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('csc_last_name', document.getElementById('accountHolderName').value);
+        localStorage.setItem('csc_last_acc', document.getElementById('accountNumber').value);
+    }
+
+    function loadLocalStorage() {
+        if(localStorage.getItem('csc_last_name')) {
+            document.getElementById('accountHolderName').value = localStorage.getItem('csc_last_name');
+        }
+        if(localStorage.getItem('csc_last_acc')) {
+            document.getElementById('accountNumber').value = localStorage.getItem('csc_last_acc');
+        }
+        // Match dropdown value if present
+        const select = document.getElementById('quickSelectCustomer');
+        const currentName = document.getElementById('accountHolderName').value;
+        const currentAcc = document.getElementById('accountNumber').value;
+        const matchVal = currentName + '|' + currentAcc;
+        if(Array.from(select.options).some(opt => opt.value === matchVal)) {
+            select.value = matchVal;
+        }
+    }
+
+    function calculateTotal() {
+        const rows = document.querySelectorAll('tbody tr');
+        let grandTotal = 0;
+
+        rows.forEach(row => {
+            const countInput = row.querySelector('.note-count');
+            const subtotalCell = row.querySelector('.subtotal');
+            const denomination = parseInt(countInput.getAttribute('data-val'));
+            const count = parseInt(countInput.value) || 0;
+
+            const subtotal = denomination * count;
+            subtotalCell.textContent = subtotal.toLocaleString('en-IN');
+            grandTotal += subtotal;
+
+            if (count === 0) {
+                row.classList.add('zero-row');
+            } else {
+                row.classList.remove('zero-row');
+            }
+        });
+
+        document.getElementById('finalTotal').textContent = grandTotal.toLocaleString('en-IN');
+        document.getElementById('amountInWords').textContent = "Amount in Words: " + convertNumberToWords(grandTotal) + " Only";
+    }
+
+    function printReceipt() {
+        calculateTotal();
+        window.print();
+    }
+
+    function convertNumberToWords(num) {
+        if (num === 0) return "Zero Rupees";
+        
+        const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+        const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+        function getWords(n) {
+            if ((n = n.toString()).length > 9) return 'overflow';
+            let n_array = ('000000000' + n).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+            if (!n_array) return;
+            let str = '';
+            str += (n_array[1] != 0) ? (a[Number(n_array[1])] || b[n_array[1][0]] + ' ' + a[n_array[1][1]]) + 'Crore ' : '';
+            str += (n_array[2] != 0) ? (a[Number(n_array[2])] || b[n_array[2][0]] + ' ' + a[n_array[2][1]]) + 'Lakh ' : '';
+            str += (n_array[3] != 0) ? (a[Number(n_array[3])] || b[n_array[3][0]] + ' ' + a[n_array[3][1]]) + 'Thousand ' : '';
+            str += (n_array[4] != 0) ? (a[Number(n_array[4])] || b[n_array[4][0]] + ' ' + a[n_array[4][1]]) + 'Hundred ' : '';
+            str += (n_array[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n_array[5])] || b[n_array[5][0]] + ' ' + a[n_array[5][1]]) : '';
+            return str.trim();
+        }
+
+        return getWords(num) + " Rupees";
+    }
+
+    function resetForm() {
+        document.querySelectorAll('.note-count').forEach(input => {
+            input.value = 0;
+            input.closest('tr').classList.add('zero-row');
+        });
+        localStorage.removeItem('csc_last_name');
+        localStorage.removeItem('csc_last_acc');
+        document.getElementById('receiptNo').textContent = 'CSC-' + Math.floor(100000 + Math.random() * 900000);
+        setDefaultAshish();
+        calculateTotal();
+    }
+</script>
+
+</body>
+  </html>
